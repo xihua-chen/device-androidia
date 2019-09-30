@@ -13,7 +13,7 @@ boot-arch: project-celadon(uefi_arch=x86_64,fastboot=efi,ignore_rsci=true,disabl
 sepolicy: permissive
 bluetooth: btusb(ivi=true)
 audio: project-celadon
-vendor-partition: true(partition_size=600,partition_name=vendor)
+vendor-partition: true(partition_size=800,partition_name=vendor)
 acpio-partition: true(partition_size=2)
 config-partition: true
 display-density: medium
@@ -54,7 +54,7 @@ trusty: true(ref_target=celadon_64)
 memtrack: true
 avb: true
 health: true
-slot-ab: true
+#slot-ab: true
 abota-fw: true
 firststage-mount: true
 cpuset: autocores
@@ -76,7 +76,7 @@ factory-scripts: true
 filesystem_config: common
 load_modules: true
 gptbuild: true(size=16G,generate_craff=false,compress_gptimage=true)
-dynamic-partitions: true(super_img_in_flashzip=true)
+#dynamic-partitions: true(super_img_in_flashzip=true)
 dbc: true
 atrace: true
 firmware: true(all_firmwares=true)
