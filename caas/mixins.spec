@@ -15,6 +15,7 @@ bluetooth: auto(ivi=false)
 audio: project-celadon
 vendor-partition: true(partition_size=600,partition_name=vendor)
 acpio-partition: true(partition_size=2)
+odm-partition: true
 config-partition: true
 display-density: medium
 dalvik-heap: tablet-10in-xhdpi-2048
@@ -82,4 +83,3 @@ atrace: true
 firmware: true(all_firmwares=true)
 aaf: true
 suspend: never
-odm-partition: true
