@@ -55,7 +55,7 @@ trusty: true(ref_target=celadon_64)
 memtrack: true
 avb: true
 health: true
-slot-ab: true
+#slot-ab: true
 abota-fw: true
 firststage-mount: true
 cpuset: autocores
@@ -77,7 +77,7 @@ factory-scripts: true
 filesystem_config: common
 load_modules: true
 gptbuild: true(size=16G,generate_craff=false,compress_gptimage=true)
-dynamic-partitions: true(super_img_in_flashzip=true)
+#dynamic-partitions: true(super_img_in_flashzip=true)
 dbc: true
 atrace: true
 firmware: true
