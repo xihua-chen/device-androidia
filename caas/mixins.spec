@@ -7,12 +7,12 @@ mixinsrel: false
 product.mk: device.mk
 
 [groups]
-kernel: gmin64(useprebuilt=false,src_path=kernel/lts2019-chromium, loglevel=8, interactive_governor=false, relative_sleepstates=false, modules_in_bootimg=false, external_modules=,debug_modules=, use_bcmdhd=false, use_iwlwifi=false, extmod_platform=bxt, iwl_defconfig=, cfg_path=config-lts/lts2019-chromium, more_modules=true, yocto_src_path=kernel/lts2019-yocto, yocto_cfg_path=config-lts/lts2019-yocto, chromium_src_path=kernel/lts2019-chromium, chromium_cfg_path=config-lts/lts2019-chromium)
+kernel: gmin64(useprebuilt=false,src_path=kernel/lts2019-chromium, loglevel=7, interactive_governor=false, relative_sleepstates=false, modules_in_bootimg=false, external_modules=,debug_modules=, use_bcmdhd=false, use_iwlwifi=false, extmod_platform=bxt, iwl_defconfig=, cfg_path=config-lts/lts2019-chromium, more_modules=true, yocto_src_path=kernel/lts2019-yocto, yocto_cfg_path=config-lts/lts2019-yocto, chromium_src_path=kernel/lts2019-chromium, chromium_cfg_path=config-lts/lts2019-chromium)
 disk-bus: auto
 boot-arch: project-celadon(uefi_arch=x86_64,fastboot=efi,ignore_rsci=true,disable_watchdog=true,watchdog_parameters=10 30,verity_warning=false,txe_bind_root_of_trust=false,bootloader_block_size=4096,verity_mode=false,disk_encryption=false,file_encryption=true,target=caas,ignore_not_applicable_reset=true,self_usb_device_mode_protocol=true,usb_storage=true,live_boot=true)
 sepolicy: permissive
-bluetooth: auto(ivi=false)
-audio: project-celadon
+bluetooth: false
+audio: false
 vendor-partition: true(partition_size=600,partition_name=vendor)
 acpio-partition: true(partition_size=2)
 config-partition: true
@@ -25,12 +25,12 @@ allow-missing-dependencies: true
 dexpreopt: true
 pstore: false
 media: auto(add_sw_msdk=false, opensource_msdk=true, opensource_msdk_omx_il=true)
-graphics: auto(gen9+=true,hwc2=true,vulkan=true,drmhwc=false,minigbm=true,gralloc1=true,enable_guc=false)
+graphics: auto(gen9+=true,hwc2=false,vulkan=true,drmhwc=true,minigbm=true,gralloc1=true,enable_guc=false)
 storage: sdcard-mmc0-v-usb-sd(adoptablesd=false,adoptableusb=false)
 ethernet: dhcp
 camera-ext: ext-camera-only
 rfkill: true(force_disable=)
-wlan: auto
+wlan: false
 codecs: configurable(hw_ve_h265=true, hw_vd_vp9=true, hw_vd_mp2=true, hw_vd_vc1=false, platform=bxt, profile_file=media_profiles_1080p.xml)
 codec2: true
 usb: host
@@ -61,7 +61,7 @@ abota-fw: true
 firststage-mount: true
 cpuset: autocores
 usb-init: true
-usb-audio-init: true
+usb-audio-init: false
 usb-otg-switch: true
 vndk: true
 public-libraries: true
