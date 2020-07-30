@@ -12,7 +12,7 @@ disk-bus: auto
 boot-arch: project-celadon(uefi_arch=x86_64,fastboot=efi,ignore_rsci=true,disable_watchdog=true,watchdog_parameters=10 30,verity_warning=false,txe_bind_root_of_trust=false,bootloader_block_size=4096,verity_mode=false,disk_encryption=false,file_encryption=true,target=caas,ignore_not_applicable_reset=true,self_usb_device_mode_protocol=true,usb_storage=true,live_boot=true)
 sepolicy: permissive
 bluetooth: false
-audio: aic
+audio: project-celadon
 vendor-partition: true(partition_size=600,partition_name=vendor)
 acpio-partition: true(partition_size=2)
 config-partition: true
@@ -61,7 +61,7 @@ abota-fw: true
 firststage-mount: true
 cpuset: autocores
 usb-init: true
-usb-audio-init: false
+usb-audio-init: true
 usb-otg-switch: true
 vndk: true
 public-libraries: true
