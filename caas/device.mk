@@ -150,7 +150,7 @@ PRODUCT_PACKAGE_OVERLAYS += $(INTEL_PATH_COMMON)/bluetooth/overlay-tablet
 ##############################################################
 # Source: device/intel/mixins/groups/audio/project-celadon/product.mk
 ##############################################################
-TARGET_BOARD_PLATFORM := broxton
+TARGET_BOARD_PLATFORM := celadon
 
 # Tinyalsa
 PRODUCT_PACKAGES_DEBUG += \
@@ -203,8 +203,17 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/audio/default/policy/hdmi_audio_policy_configuration.xml:vendor/etc/hdmi_audio_policy_configuration.xml \
     $(LOCAL_PATH)/audio/default/policy/audio_policy_volumes.xml:vendor/etc/audio_policy_volumes.xml \
     $(LOCAL_PATH)/audio/default/policy/default_volume_tables.xml:vendor/etc/default_volume_tables.xml \
-    $(LOCAL_PATH)/audio/default/effect/audio_effects.xml:vendor/etc/audio_effects.xml \
+    $(LOCAL_PATH)/audio/default/effect/audio_effects.xml:vendor/etc/audio_effects.xml
+ifeq ($(BASE_YOCTO_KERNEL), true)
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/audio/default/mixer_paths_ehl.xml:vendor/etc/mixer_paths_0.xml \
+    $(LOCAL_PATH)/audio/default/mixer_paths_usb.xml:vendor/etc/mixer_paths_usb.xml
+
+PRODUCT_PROPERTY_OVERRIDES += ro.vendor.hdmi.audio=ehl
+else
+PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/audio/default/mixer_paths_0.xml:vendor/etc/mixer_paths_0.xml
+endif
 
 #fallback
 PRODUCT_COPY_FILES += \
@@ -232,7 +241,7 @@ PRODUCT_COPY_FILES += \
 ##############################################################
 # Source: device/intel/mixins/groups/device-specific/caas/product.mk
 ##############################################################
-TARGET_BOARD_PLATFORM := broxton
+TARGET_BOARD_PLATFORM := celadon
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/init.recovery.rc:root/init.recovery.$(TARGET_PRODUCT).rc \
@@ -253,11 +262,31 @@ PRODUCT_PACKAGES += android.hardware.keymaster@3.0-impl \
                     android.hardware.graphics.allocator@2.0-service \
                     android.hardware.renderscript@1.0-impl \
                     android.hardware.graphics.composer@2.1-impl \
-                    android.hardware.graphics.composer@2.1-service
+                    android.hardware.graphics.composer@2.1-service \
+                    batsys \
+                    thermsys
 
 PRODUCT_COPY_FILES += $(LOCAL_PATH)/manifest.xml:vendor/manifest.xml
 PRODUCT_COPY_FILES += $(LOCAL_PATH)/file_share.sh:$(TARGET_COPY_OUT_VENDOR)/bin/file_share.sh
 PRODUCT_COPY_FILES += vendor/intel/utils/LICENSE:$(PRODUCT_OUT)/LICENSE
+PRODUCT_COPY_FILES += $(LOCAL_PATH)/start_android_qcow2.sh:$(PRODUCT_OUT)/scripts/start_android_qcow2.sh
+PRODUCT_COPY_FILES += $(LOCAL_PATH)/start_flash_usb.sh:$(PRODUCT_OUT)/scripts/start_flash_usb.sh
+PRODUCT_COPY_FILES += $(LOCAL_PATH)/auto_switch_pt_usb_vms.sh:$(PRODUCT_OUT)/scripts/auto_switch_pt_usb_vms.sh
+PRODUCT_COPY_FILES += $(LOCAL_PATH)/findall.py:$(PRODUCT_OUT)/scripts/findall.py
+PRODUCT_COPY_FILES += $(LOCAL_PATH)/setup_host.sh:$(PRODUCT_OUT)/scripts/setup_host.sh
+PRODUCT_COPY_FILES += $(LOCAL_PATH)/sof_audio/configure_sof.sh:$(PRODUCT_OUT)/scripts/sof_audio/configure_sof.sh
+PRODUCT_COPY_FILES += $(LOCAL_PATH)/setup_audio_host.sh:$(PRODUCT_OUT)/scripts/setup_audio_host.sh
+PRODUCT_COPY_FILES += $(LOCAL_PATH)/sof_audio/blacklist-dsp.conf:$(PRODUCT_OUT)/scripts/sof_audio/blacklist-dsp.conf
+PRODUCT_COPY_FILES += $(LOCAL_PATH)/guest_pm_control:$(PRODUCT_OUT)/scripts/guest_pm_control
+PRODUCT_COPY_FILES += $(LOCAL_PATH)/intel-thermal-conf.xml:$(PRODUCT_OUT)/scripts/intel-thermal-conf.xml
+PRODUCT_COPY_FILES += $(LOCAL_PATH)/thermald.service:$(PRODUCT_OUT)/scripts/thermald.service
+PRODUCT_COPY_FILES += $(LOCAL_PATH)/qmp_events_handler.sh:$(PRODUCT_OUT)/scripts/qmp_events_handler.sh
+PRODUCT_COPY_FILES += vendor/intel/fw/trusty-release-binaries/rpmb_dev:$(PRODUCT_OUT)/scripts/rpmb_dev
+PRODUCT_COPY_FILES += device/intel/civ/host/backend/battery/bin/batsys:$(PRODUCT_OUT)/scripts/batsys
+PRODUCT_COPY_FILES += device/intel/civ/host/backend/thermal/bin/thermsys:$(PRODUCT_OUT)/scripts/thermsys
+PRODUCT_COPY_FILES += $(LOCAL_PATH)/wakeup.py:$(PRODUCT_OUT)/scripts/wakeup.py
+PRODUCT_COPY_FILES += device/intel/civ/host/virtual-input-manager/bin/sendkey:$(PRODUCT_OUT)/scripts/sendkey
+PRODUCT_COPY_FILES += device/intel/civ/host/virtual-input-manager/bin/vinput-manager:$(PRODUCT_OUT)/scripts/vinput-manager
 ##############################################################
 # Source: device/intel/mixins/groups/trusty/true/product.mk
 ##############################################################
@@ -303,6 +332,14 @@ PRODUCT_COPY_FILES += $(LOCAL_PATH)/extra_files/vendor-partition/toolbox_recover
 PRODUCT_PACKAGES += \
      toybox_static \
      toybox_vendor \
+##############################################################
+# Source: device/intel/mixins/groups/product-partition/true/product.mk
+##############################################################
+
+##############################################################
+# Source: device/intel/mixins/groups/odm-partition/true/product.mk
+##############################################################
+
 ##############################################################
 # Source: device/intel/mixins/groups/display-density/medium/product.mk
 ##############################################################
@@ -465,9 +502,17 @@ PRODUCT_COPY_FILES += $(INTEL_PATH_COMMON)/rfkill/rfkill-init.sh:vendor/bin/rfki
 PRODUCT_COPY_FILES += \
     frameworks/av/media/libstagefright/data/media_codecs_google_audio.xml:vendor/etc/media_codecs_google_audio.xml \
     frameworks/av/media/libstagefright/data/media_codecs_google_video.xml:vendor/etc/media_codecs_google_video.xml \
-    $(LOCAL_PATH)/extra_files/codecs/media_codecs.xml:vendor/etc/media_codecs.xml \
-    $(LOCAL_PATH)/extra_files/codecs/mfx_omxil_core.conf:vendor/etc/mfx_omxil_core.conf \
     $(LOCAL_PATH)/extra_files/codecs/media_profiles_1080p.xml:vendor/etc/media_profiles_V1_0.xml
+
+ifeq ($(BASE_YOCTO_KERNEL),true)
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/extra_files/codecs/media_codecs_vp9.xml:vendor/etc/media_codecs.xml \
+    $(LOCAL_PATH)/extra_files/codecs/mfx_omxil_core_vp9.conf:vendor/etc/mfx_omxil_core.conf
+else
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/extra_files/codecs/media_codecs.xml:vendor/etc/media_codecs.xml \
+    $(LOCAL_PATH)/extra_files/codecs/mfx_omxil_core.conf:vendor/etc/mfx_omxil_core.conf
+endif
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/extra_files/codecs/media_codecs_performance_bxt.xml:vendor/etc/media_codecs_performance.xml
@@ -476,22 +521,6 @@ PRODUCT_COPY_FILES += \
 ##############################################################
 PRODUCT_COPY_FILES += frameworks/native/data/etc/android.hardware.usb.host.xml:vendor/etc/permissions/android.hardware.usb.host.xml
 
-##############################################################
-# Source: device/intel/mixins/groups/usb-gadget/configfs/product.mk
-##############################################################
-ifeq ($(TARGET_BUILD_VARIANT),user)
-# Enable Secure Debugging
-PRODUCT_DEFAULT_PROPERTY_OVERRIDES += ro.adb.secure=1
-
-ifeq ($(BUILD_FOR_CTS_AUTOMATION),true)
-PRODUCT_COPY_FILES += $(INTEL_PATH_COMMON)/usb-gadget/adb_keys:root/adb_keys
-endif #BUILD_FOR_CTS_AUTOMATION == true
-endif #TARGET_BUILD_VARIANT == user
-
-# Add Intel adb keys for userdebug/eng builds
-ifneq ($(TARGET_BUILD_VARIANT),user)
-PRODUCT_COPY_FILES += $(INTEL_PATH_COMMON)/usb-gadget/adb_keys:root/adb_keys
-endif
 ##############################################################
 # Source: device/intel/mixins/groups/midi/true/product.mk
 ##############################################################
@@ -503,8 +532,9 @@ PRODUCT_COPY_FILES += \
 ##############################################################
 PRODUCT_COPY_FILES += \
         frameworks/native/data/etc/android.hardware.touchscreen.multitouch.jazzhand.xml:vendor/etc/permissions/android.hardware.touchscreen.multitouch.jazzhand.xml\
-        $(INTEL_PATH_COMMON)/touch/Vendor_1ff7_Product_0f21.idc:system/usr/idc/Vendor_1ff7_Product_0f21.idc
-
+        $(INTEL_PATH_COMMON)/touch/Vendor_1ff7_Product_0f21.idc:system/usr/idc/Vendor_1ff7_Product_0f21.idc\
+        $(INTEL_PATH_COMMON)/touch/Vendor_2386_Product_3115.idc:system/usr/idc/Vendor_2386_Product_3115.idc\
+        $(INTEL_PATH_COMMON)/touch/Vendor_056a_Product_489c.idc:system/usr/idc/Vendor_056a_Product_489c.idc
 ##############################################################
 # Source: device/intel/mixins/groups/debug-tools/true/product.mk
 ##############################################################
@@ -528,6 +558,14 @@ AFOTAAPP_EULA_PATH :=
 AFOTAAPP_LOG_LEVEL := DEBUG
 BOARD_SEPOLICY_DIRS += $(INTEL_PATH_SEPOLICY)/fota
 endif
+##############################################################
+# Source: device/intel/mixins/groups/default-drm/true/product.mk
+##############################################################
+#only enable default drm service
+PRODUCT_PACKAGES += android.hardware.drm@1.0-service \
+                    android.hardware.drm@1.0-impl \
+                    android.hardware.drm@1.2-service.clearkey
+
 ##############################################################
 # Source: device/intel/mixins/groups/thermal/thermal-daemon/product.mk
 ##############################################################
@@ -556,17 +594,8 @@ PRODUCT_PACKAGES += crashlogd \
 	aplog.sh \
 	logfs.sh
 
-PRODUCT_DEFAULT_PROPERTY_OVERRIDES += persist.vendor.crashlogd.data_quota=50
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += ro.vendor.service.default_logfs=apklogfs
-PRODUCT_DEFAULT_PROPERTY_OVERRIDES += vendor.logd.kernel.raw_message=False
-PRODUCT_DEFAULT_PROPERTY_OVERRIDES += persist.logd.logpersistd.count=20
-PRODUCT_DEFAULT_PROPERTY_OVERRIDES += persist.logd.logpersistd.rotate_kbytes=5000
-endif
-##############################################################
-# Source: device/intel/mixins/groups/debug-phonedoctor/true/product.mk
-##############################################################
-ifeq ($(MIXIN_DEBUG_LOGS),true)
-PRODUCT_PACKAGES += crash_package
+PRODUCT_DEFAULT_PROPERTY_OVERRIDES += persist.logd.logpersistd.size=100
 endif
 ##############################################################
 # Source: device/intel/mixins/groups/lights/true/product.mk
@@ -639,24 +668,6 @@ PRODUCT_COPY_FILES += $(LOCAL_PATH)/extra_files/public-libraries/public.librarie
 # HDCP Daemon
 PRODUCT_PACKAGES += hdcpd
 ##############################################################
-# Source: device/intel/mixins/groups/neuralnetworks/true/product.mk
-##############################################################
-# neuralnetworks HAL
-PRODUCT_PACKAGES += \
-    android.hardware.neuralnetworks@1.2-generic-service \
-    android.hardware.neuralnetworks@1.2-generic-impl \
-    android.hardware.neuralnetworks@1.2-service-gpgpu
-
-PRODUCT_PACKAGES += \
-    libinference_engine
-
-PRODUCT_PACKAGES += \
-    libMKLDNNPlugin\
-    libmkldnn
-
-PRODUCT_PACKAGES += \
-    graphtest_cpu
-##############################################################
 # Source: device/intel/mixins/groups/load_modules/true/product.mk
 ##############################################################
 PRODUCT_PACKAGES += load_modules.sh
@@ -709,6 +720,28 @@ $(call inherit-product,device/intel/common/firmware.mk)
 ##############################################################
 PRODUCT_PACKAGES += aafd \
                     auto_detection.sh
+##############################################################
+# Source: device/intel/mixins/groups/sensors/mediation/product.mk
+##############################################################
+ifeq ($(TARGET_BOARD_PLATFORM),)
+    $(error Please define TARGET_BOARD_PLATFORM in product-level Makefile)
+endif
+
+# Sensors HAL modules
+PRODUCT_PACKAGES += \
+        sensors.$(TARGET_BOARD_PLATFORM)
+
+PRODUCT_PACKAGES += \
+        android.hardware.sensors@1.0-service \
+        android.hardware.sensors@1.0-impl
+
+PRODUCT_COPY_FILES += \
+        frameworks/native/data/etc/android.hardware.sensor.ambient_temperature.xml:vendor/etc/permissions/android.hardware.sensor.ambient_temperature.xml \
+        frameworks/native/data/etc/android.hardware.sensor.accelerometer.xml:vendor/etc/permissions/android.hardware.sensor.accelerometer.xml \
+        frameworks/native/data/etc/android.hardware.sensor.gyroscope.xml:vendor/etc/permissions/android.hardware.sensor.gyroscope.xml \
+        frameworks/native/data/etc/android.hardware.sensor.compass.xml:vendor/etc/permissions/android.hardware.sensor.compass.xml \
+        frameworks/native/data/etc/android.hardware.sensor.light.xml:vendor/etc/permissions/android.hardware.sensor.light.xml
+
 ##############################################################
 # Source: device/intel/mixins/groups/debug-unresponsive/default/product.mk
 ##############################################################

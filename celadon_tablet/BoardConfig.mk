@@ -242,6 +242,14 @@ BOARD_KERNEL_CMDLINE += \
 BOARD_KERNEL_CMDLINE += \
        intel_pstate=passive
 
+BOARD_KERNEL_CMDLINE += \
+      snd-hda-intel.model=dell-headset-multi
+
+ifeq ($(BASE_YOCTO_KERNEL), true)
+BOARD_KERNEL_CMDLINE += \
+      snd-intel-dspcfg.dsp_driver=1
+endif
+
 BOARD_SEPOLICY_M4DEFS += module_kernel=true
 BOARD_SEPOLICY_DIRS += $(INTEL_PATH_SEPOLICY)/kernel
 ##############################################################
@@ -274,6 +282,8 @@ INTEL_AUDIO_HAL := audio
 else
 INTEL_AUDIO_HAL := stub
 endif
+
+BOARD_SEPOLICY_DIRS += $(INTEL_PATH_SEPOLICY)/audio
 
 # Use XML audio policy configuration file
 USE_XML_AUDIO_POLICY_CONF := 1
@@ -549,11 +559,6 @@ ifeq ($(MIXIN_DEBUG_LOGS),true)
 BOARD_SEPOLICY_DIRS += $(INTEL_PATH_SEPOLICY)/crashlogd
 BOARD_SEPOLICY_M4DEFS += module_debug_crashlogd=true
 endif
-##############################################################
-# Source: device/intel/mixins/groups/debug-phonedoctor/true/BoardConfig.mk
-##############################################################
-BOARD_SEPOLICY_M4DEFS += module_debug_phonedoctor=true
-BOARD_SEPOLICY_DIRS += $(INTEL_PATH_SEPOLICY)/debug-phonedoctor
 ##############################################################
 # Source: device/intel/mixins/groups/power/true/BoardConfig.mk
 ##############################################################

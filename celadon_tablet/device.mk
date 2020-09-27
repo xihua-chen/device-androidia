@@ -211,7 +211,7 @@ PRODUCT_PACKAGE_OVERLAYS += $(INTEL_PATH_COMMON)/bluetooth/intel/car/overlay
 ##############################################################
 # Source: device/intel/mixins/groups/audio/project-celadon/product.mk
 ##############################################################
-TARGET_BOARD_PLATFORM := broxton
+TARGET_BOARD_PLATFORM := celadon
 
 # Tinyalsa
 PRODUCT_PACKAGES_DEBUG += \
@@ -264,8 +264,17 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/audio/default/policy/hdmi_audio_policy_configuration.xml:vendor/etc/hdmi_audio_policy_configuration.xml \
     $(LOCAL_PATH)/audio/default/policy/audio_policy_volumes.xml:vendor/etc/audio_policy_volumes.xml \
     $(LOCAL_PATH)/audio/default/policy/default_volume_tables.xml:vendor/etc/default_volume_tables.xml \
-    $(LOCAL_PATH)/audio/default/effect/audio_effects.xml:vendor/etc/audio_effects.xml \
+    $(LOCAL_PATH)/audio/default/effect/audio_effects.xml:vendor/etc/audio_effects.xml
+ifeq ($(BASE_YOCTO_KERNEL), true)
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/audio/default/mixer_paths_ehl.xml:vendor/etc/mixer_paths_0.xml \
+    $(LOCAL_PATH)/audio/default/mixer_paths_usb.xml:vendor/etc/mixer_paths_usb.xml
+
+PRODUCT_PROPERTY_OVERRIDES += ro.vendor.hdmi.audio=ehl
+else
+PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/audio/default/mixer_paths_0.xml:vendor/etc/mixer_paths_0.xml
+endif
 
 #fallback
 PRODUCT_COPY_FILES += \
@@ -293,7 +302,7 @@ PRODUCT_COPY_FILES += \
 ##############################################################
 # Source: device/intel/mixins/groups/device-specific/celadon_tablet/product.mk
 ##############################################################
-TARGET_BOARD_PLATFORM := broxton
+TARGET_BOARD_PLATFORM := celadon
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/init.recovery.rc:root/init.recovery.$(TARGET_PRODUCT).rc \
@@ -517,9 +526,17 @@ PRODUCT_COPY_FILES += $(INTEL_PATH_COMMON)/rfkill/rfkill-init.sh:vendor/bin/rfki
 PRODUCT_COPY_FILES += \
     frameworks/av/media/libstagefright/data/media_codecs_google_audio.xml:vendor/etc/media_codecs_google_audio.xml \
     frameworks/av/media/libstagefright/data/media_codecs_google_video.xml:vendor/etc/media_codecs_google_video.xml \
-    $(LOCAL_PATH)/extra_files/codecs/media_codecs.xml:vendor/etc/media_codecs.xml \
-    $(LOCAL_PATH)/extra_files/codecs/mfx_omxil_core.conf:vendor/etc/mfx_omxil_core.conf \
     $(LOCAL_PATH)/extra_files/codecs/media_profiles_1080p.xml:vendor/etc/media_profiles_V1_0.xml
+
+ifeq ($(BASE_YOCTO_KERNEL),true)
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/extra_files/codecs/media_codecs_vp9.xml:vendor/etc/media_codecs.xml \
+    $(LOCAL_PATH)/extra_files/codecs/mfx_omxil_core_vp9.conf:vendor/etc/mfx_omxil_core.conf
+else
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/extra_files/codecs/media_codecs.xml:vendor/etc/media_codecs.xml \
+    $(LOCAL_PATH)/extra_files/codecs/mfx_omxil_core.conf:vendor/etc/mfx_omxil_core.conf
+endif
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/extra_files/codecs/media_codecs_performance_bxt.xml:vendor/etc/media_codecs_performance.xml
@@ -607,17 +624,8 @@ PRODUCT_PACKAGES += crashlogd \
 	aplog.sh \
 	logfs.sh
 
-PRODUCT_DEFAULT_PROPERTY_OVERRIDES += persist.vendor.crashlogd.data_quota=50
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += ro.vendor.service.default_logfs=apklogfs
-PRODUCT_DEFAULT_PROPERTY_OVERRIDES += vendor.logd.kernel.raw_message=False
-PRODUCT_DEFAULT_PROPERTY_OVERRIDES += persist.logd.logpersistd.count=20
-PRODUCT_DEFAULT_PROPERTY_OVERRIDES += persist.logd.logpersistd.rotate_kbytes=5000
-endif
-##############################################################
-# Source: device/intel/mixins/groups/debug-phonedoctor/true/product.mk
-##############################################################
-ifeq ($(MIXIN_DEBUG_LOGS),true)
-PRODUCT_PACKAGES += crash_package
+PRODUCT_DEFAULT_PROPERTY_OVERRIDES += persist.logd.logpersistd.size=100
 endif
 ##############################################################
 # Source: device/intel/mixins/groups/lights/true/product.mk

@@ -298,18 +298,12 @@ KERNEL_CCSLOP := $(filter-out time_macros,$(subst $(comma), ,$(CCACHE_SLOPPINESS
 KERNEL_CCSLOP := $(subst $(space),$(comma),$(KERNEL_CCSLOP))
 
 
-ifeq ($(DEV_BKC_KERNEL), true)
+ifeq ($(BASE_CHROMIUM_KERNEL), true)
   LOCAL_KERNEL_SRC := 
-  KERNEL_CONFIG_PATH := 
-  EXT_MODULES := 
-  DEBUG_MODULES := 
-
-else ifeq ($(MLT_KERNEL), true)
+  KERNEL_CONFIG_PATH := $(TARGET_DEVICE_DIR)/
+else ifeq ($(BASE_YOCTO_KERNEL), true)
   LOCAL_KERNEL_SRC := 
-  KERNEL_CONFIG_PATH := 
-  EXT_MODULES := 
-  DEBUG_MODULES := 
-
+  KERNEL_CONFIG_PATH := $(TARGET_DEVICE_DIR)/
 else
   LOCAL_KERNEL_SRC := kernel/lts2018
   EXT_MODULES := 
@@ -672,13 +666,9 @@ selinux_fc :=
 ##############################################################
 # Source: device/intel/mixins/groups/graphics/mesa/AndroidBoard.mk
 ##############################################################
-ifeq ($(TARGET_BOARD_PLATFORM),icelakeu)
-	I915_FW_PATH := $(INTEL_PATH_VENDOR)/ufo/gen9_dev/x86_64_media_icl/vendor/firmware/i915
-else ifeq ($(TARGET_BOARD_PLATFORM),kabylake)
-	I915_FW_PATH := $(INTEL_PATH_VENDOR)/ufo/gen9_dev/x86_64_media_kbl/vendor/firmware/i915
-else
-	I915_FW_PATH := $(INTEL_PATH_VENDOR)/ufo/gen9_dev/x86_64_media/vendor/firmware/i915
-endif
+
+I915_FW_PATH := vendor/linux/firmware/i915
+
 #list of i915/huc_xxx.bin i915/dmc_xxx.bin i915/guc_xxx.bin
 $(foreach t, $(patsubst $(I915_FW_PATH)/%,%,$(wildcard $(I915_FW_PATH)/*)) ,$(eval I915_FW += i915/$(t)) $(eval $(LOCAL_KERNEL) : $(PRODUCT_OUT)/vendor/firmware/i915/$(t)))
 

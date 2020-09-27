@@ -9,7 +9,7 @@ BOARD_DISK_BUS = ff.ff
 ##############################################################
 # Configure super partitions
 BOARD_SUPER_PARTITION_GROUPS := group_sys
-BOARD_GROUP_SYS_PARTITION_LIST := system vendor
+BOARD_GROUP_SYS_PARTITION_LIST := system vendor product odm
 
 BOARD_SUPER_PARTITION_SIZE := $(shell echo 6400*1024*1024 | bc)
 BOARD_GROUP_SYS_SIZE = $(shell echo "$(BOARD_SUPER_PARTITION_SIZE) / 2 - 4*1024*1024" | bc)
@@ -125,7 +125,6 @@ BOARD_SEPOLICY_DIRS += $(INTEL_PATH_SEPOLICY)/abota/generic
 BOARD_SEPOLICY_DIRS += $(INTEL_PATH_SEPOLICY)/abota/efi
 
 
-KERNELFLINGER_USE_RPMB_SIMULATE := true
 
 
 AB_OTA_POSTINSTALL_CONFIG += \
@@ -154,6 +153,8 @@ KERNELFLINGER_SUPPORT_LIVE_BOOT ?= true
 BOARD_HOSTAPD_DRIVER := NL80211
 BOARD_WPA_SUPPLICANT_DRIVER := NL80211
 WPA_SUPPLICANT_VERSION := VER_2_1_DEVEL
+# required for wifi HAL support
+BOARD_WLAN_DEVICE := iwlwifi
 
 BOARD_SEPOLICY_DIRS += $(INTEL_PATH_SEPOLICY)/wlan/common
 ##############################################################
@@ -164,7 +165,7 @@ TARGET_USES_64_BIT_BINDER := true
 # Source: device/intel/mixins/groups/kernel/gmin64/BoardConfig.mk
 ##############################################################
 # Specify location of board-specific kernel headers
-TARGET_BOARD_KERNEL_HEADERS := $(INTEL_PATH_COMMON)/kernel/lts2018/kernel-headers
+TARGET_BOARD_KERNEL_HEADERS := $(INTEL_PATH_COMMON)/kernel/lts2019-chromium/kernel-headers
 
 ifneq ($(TARGET_BUILD_VARIANT),user)
 KERNEL_LOGLEVEL ?= 7
@@ -184,6 +185,14 @@ BOARD_KERNEL_CMDLINE += \
 
 BOARD_KERNEL_CMDLINE += \
        intel_pstate=passive
+
+BOARD_KERNEL_CMDLINE += \
+      snd-hda-intel.model=dell-headset-multi
+
+ifeq ($(BASE_YOCTO_KERNEL), true)
+BOARD_KERNEL_CMDLINE += \
+      snd-intel-dspcfg.dsp_driver=1
+endif
 
 BOARD_SEPOLICY_M4DEFS += module_kernel=true
 BOARD_SEPOLICY_DIRS += $(INTEL_PATH_SEPOLICY)/kernel
@@ -219,6 +228,8 @@ else
 INTEL_AUDIO_HAL := stub
 endif
 
+BOARD_SEPOLICY_DIRS += $(INTEL_PATH_SEPOLICY)/audio
+
 # Use XML audio policy configuration file
 USE_XML_AUDIO_POLICY_CONF := 1
 # Use configurable audio policy
@@ -245,6 +256,18 @@ BOARD_KERNEL_CMDLINE += \
 
 BOARD_FLASHFILES += ${TARGET_DEVICE_DIR}/bldr_utils.img:bldr_utils.img
 BOARD_FLASHFILES += $(PRODUCT_OUT)/LICENSE
+BOARD_FLASHFILES += $(PRODUCT_OUT)/scripts/start_android_qcow2.sh
+BOARD_FLASHFILES += $(PRODUCT_OUT)/scripts/start_flash_usb.sh
+BOARD_FLASHFILES += $(PRODUCT_OUT)/scripts/auto_switch_pt_usb_vms.sh
+BOARD_FLASHFILES += $(PRODUCT_OUT)/scripts/findall.py
+BOARD_FLASHFILES += $(PRODUCT_OUT)/scripts/setup_host.sh
+BOARD_FLASHFILES += $(PRODUCT_OUT)/scripts/sof_audio/configure_sof.sh
+BOARD_FLASHFILES += $(PRODUCT_OUT)/scripts/sof_audio/blacklist-dsp.conf
+BOARD_FLASHFILES += $(PRODUCT_OUT)/scripts/setup_audio_host.sh
+BOARD_FLASHFILES += $(PRODUCT_OUT)/scripts/guest_pm_control
+BOARD_FLASHFILES += $(PRODUCT_OUT)/scripts/intel-thermal-conf.xml
+BOARD_FLASHFILES += $(PRODUCT_OUT)/scripts/thermald.service
+BOARD_FLASHFILES += $(PRODUCT_OUT)/scripts/rpmb_dev
 
 # for USB OTG WA
 BOARD_SEPOLICY_DIRS += $(INTEL_PATH_SEPOLICY)/bxt_usb
@@ -331,6 +354,26 @@ BOARD_CONFIGIMAGE_PARTITION_SIZE := 8388608
 BOARD_SEPOLICY_M4DEFS += module_config_partition=true
 BOARD_SEPOLICY_DIRS += $(INTEL_PATH_SEPOLICY)/config-partition
 ##############################################################
+# Source: device/intel/mixins/groups/product-partition/true/BoardConfig.mk
+##############################################################
+# Those 3 lines are required to enable product image generation.
+# Remove them if product partition is not used.
+TARGET_COPY_OUT_PRODUCT := product
+BOARD_PRODUCTIMAGE_FILE_SYSTEM_TYPE := ext4
+PRODUCT_PARTITION_SIZE := $(shell echo 100*1048576 | bc)
+TARGET_USE_PRODUCT := true
+AB_OTA_PARTITIONS += product
+##############################################################
+# Source: device/intel/mixins/groups/odm-partition/true/BoardConfig.mk
+##############################################################
+# Those 3 lines are required to enable odm image generation.
+# Remove them if odm partition is not used.
+TARGET_COPY_OUT_ODM := odm
+BOARD_ODMIMAGE_FILE_SYSTEM_TYPE := ext4
+ODM_PARTITION_SIZE := $(shell echo 100*1048576 | bc)
+TARGET_USE_ODM := true
+AB_OTA_PARTITIONS += odm
+##############################################################
 # Source: device/intel/mixins/groups/cpu-arch/x86/BoardConfig.mk
 ##############################################################
 BUILD_CPU_ARCH ?= silvermont
@@ -378,6 +421,11 @@ TARGET_USE_PRIVATE_LIBDRM := true
 LIBDRM_VER ?= intel
 
 BOARD_KERNEL_CMDLINE += vga=current i915.modeset=1 drm.atomic=1 i915.nuclear_pageflip=1 drm.vblankoffdelay=1 i915.fastboot=1
+
+ifeq ($(BASE_YOCTO_KERNEL),true)
+BOARD_KERNEL_CMDLINE += i915.enable_guc=2
+endif
+
 USE_OPENGL_RENDERER := true
 NUM_FRAMEBUFFER_SURFACE_BUFFERS := 3
 USE_INTEL_UFO_DRIVER := false
@@ -432,7 +480,7 @@ BOARD_SEPOLICY_DIRS += $(INTEL_PATH_SEPOLICY)/camera-ext/ext-camera-only
 ##############################################################
 BOARD_SEPOLICY_DIRS += $(INTEL_PATH_SEPOLICY)/rfkill
 ##############################################################
-# Source: device/intel/mixins/groups/usb-gadget/configfs/BoardConfig.mk
+# Source: device/intel/mixins/groups/usb-gadget/auto/BoardConfig.mk
 ##############################################################
 BOARD_SEPOLICY_DIRS += $(INTEL_PATH_SEPOLICY)/usb-gadget/configfs
 ##############################################################
@@ -444,6 +492,10 @@ DEVICE_PACKAGE_OVERLAYS += $(INTEL_PATH_COMMON)/navigationbar/overlay
 # Source: device/intel/mixins/groups/debug-tools/true/BoardConfig.mk
 ##############################################################
 BOARD_SEPOLICY_DIRS += $(INTEL_PATH_SEPOLICY)/debug-tools/androidterm
+##############################################################
+# Source: device/intel/mixins/groups/default-drm/true/BoardConfig.mk
+##############################################################
+BOARD_SEPOLICY_DIRS += $(INTEL_PATH_SEPOLICY)/drm-default
 ##############################################################
 # Source: device/intel/mixins/groups/thermal/thermal-daemon/BoardConfig.mk
 ##############################################################
@@ -469,11 +521,6 @@ ifeq ($(MIXIN_DEBUG_LOGS),true)
 BOARD_SEPOLICY_DIRS += $(INTEL_PATH_SEPOLICY)/crashlogd
 BOARD_SEPOLICY_M4DEFS += module_debug_crashlogd=true
 endif
-##############################################################
-# Source: device/intel/mixins/groups/debug-phonedoctor/true/BoardConfig.mk
-##############################################################
-BOARD_SEPOLICY_M4DEFS += module_debug_phonedoctor=true
-BOARD_SEPOLICY_DIRS += $(INTEL_PATH_SEPOLICY)/debug-phonedoctor
 ##############################################################
 # Source: device/intel/mixins/groups/power/true/BoardConfig.mk
 ##############################################################
@@ -525,10 +572,6 @@ BOARD_VNDK_VERSION := current
 # Source: device/intel/mixins/groups/hdcpd/true/BoardConfig.mk
 ##############################################################
 BOARD_SEPOLICY_DIRS += $(INTEL_PATH_SEPOLICY)/hdcpd
-##############################################################
-# Source: device/intel/mixins/groups/neuralnetworks/true/BoardConfig.mk
-##############################################################
-BOARD_SEPOLICY_DIRS += $(INTEL_PATH_SEPOLICY)/neuralnetworks
 ##############################################################
 # Source: device/intel/mixins/groups/load_modules/true/BoardConfig.mk
 ##############################################################
@@ -588,4 +631,10 @@ BOARD_SEPOLICY_DIRS += $(INTEL_PATH_SEPOLICY)/dbc
 # Source: device/intel/mixins/groups/aaf/true/BoardConfig.mk
 ##############################################################
 BOARD_SEPOLICY_DIRS += $(INTEL_PATH_SEPOLICY)/aafd
+##############################################################
+# Source: device/intel/mixins/groups/sensors/mediation/BoardConfig.mk
+##############################################################
+USE_SENSOR_MEDIATION_HAL := true
+
+BOARD_SEPOLICY_DIRS += $(INTEL_PATH_SEPOLICY)/sensors/mediation
 # ------------------ END MIX-IN DEFINITIONS ------------------

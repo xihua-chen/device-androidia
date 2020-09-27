@@ -277,23 +277,17 @@ KERNEL_CCSLOP := $(filter-out time_macros,$(subst $(comma), ,$(CCACHE_SLOPPINESS
 KERNEL_CCSLOP := $(subst $(space),$(comma),$(KERNEL_CCSLOP))
 
 
-ifeq ($(DEV_BKC_KERNEL), true)
-  LOCAL_KERNEL_SRC := 
-  KERNEL_CONFIG_PATH := 
-  EXT_MODULES := 
-  DEBUG_MODULES := 
-
-else ifeq ($(MLT_KERNEL), true)
-  LOCAL_KERNEL_SRC := 
-  KERNEL_CONFIG_PATH := 
-  EXT_MODULES := 
-  DEBUG_MODULES := 
-
+ifeq ($(BASE_CHROMIUM_KERNEL), true)
+  LOCAL_KERNEL_SRC := kernel/lts2019-chromium
+  KERNEL_CONFIG_PATH := $(TARGET_DEVICE_DIR)/config-lts/lts2019-chromium
+else ifeq ($(BASE_YOCTO_KERNEL), true)
+  LOCAL_KERNEL_SRC := kernel/lts2019-yocto
+  KERNEL_CONFIG_PATH := $(TARGET_DEVICE_DIR)/config-lts/lts2019-yocto
 else
-  LOCAL_KERNEL_SRC := kernel/lts2018
+  LOCAL_KERNEL_SRC := kernel/lts2019-chromium
   EXT_MODULES := 
   DEBUG_MODULES := 
-  KERNEL_CONFIG_PATH := $(TARGET_DEVICE_DIR)/config-lts/lts2018/bxt/android/non-embargoed
+  KERNEL_CONFIG_PATH := $(TARGET_DEVICE_DIR)/config-lts/lts2019-chromium
 endif
 
 EXTMOD_SRC := ../modules
@@ -655,6 +649,20 @@ INSTALLED_RADIOIMAGE_TARGET += $(INSTALLED_CONFIGIMAGE_TARGET)
 
 selinux_fc :=
 ##############################################################
+# Source: device/intel/mixins/groups/product-partition/true/AndroidBoard.mk
+##############################################################
+include $(CLEAR_VARS)
+LOCAL_MODULE := product-partition
+INSTALLED_PRODUCTIMAGE_TARGET := $(PRODUCT_OUT)/product.img
+include $(BUILD_PHONY_PACKAGE)
+##############################################################
+# Source: device/intel/mixins/groups/odm-partition/true/AndroidBoard.mk
+##############################################################
+include $(CLEAR_VARS)
+LOCAL_MODULE := odm-partition
+INSTALLED_ODMIMAGE_TARGET := $(PRODUCT_OUT)/odm.img
+include $(BUILD_PHONY_PACKAGE)
+##############################################################
 # Source: device/intel/mixins/groups/media/auto/AndroidBoard.mk
 ##############################################################
 AUTO_IN += $(TARGET_DEVICE_DIR)/extra_files/media/auto_hal.in
@@ -662,13 +670,9 @@ AUTO_IN += $(TARGET_DEVICE_DIR)/extra_files/media/auto_hal.in
 ##############################################################
 # Source: device/intel/mixins/groups/graphics/auto/AndroidBoard.mk
 ##############################################################
-ifeq ($(TARGET_BOARD_PLATFORM),icelakeu)
-	I915_FW_PATH := $(INTEL_PATH_VENDOR)/ufo/gen9_dev/x86_64_media_icl/vendor/firmware/i915
-else ifeq ($(TARGET_BOARD_PLATFORM),kabylake)
-	I915_FW_PATH := $(INTEL_PATH_VENDOR)/ufo/gen9_dev/x86_64_media_kbl/vendor/firmware/i915
-else
-	I915_FW_PATH := $(INTEL_PATH_VENDOR)/ufo/gen9_dev/x86_64_media/vendor/firmware/i915
-endif
+
+I915_FW_PATH := vendor/linux/firmware/i915
+
 #list of i915/huc_xxx.bin i915/dmc_xxx.bin i915/guc_xxx.bin
 $(foreach t, $(patsubst $(I915_FW_PATH)/%,%,$(wildcard $(I915_FW_PATH)/*)) ,$(eval I915_FW += i915/$(t)) $(eval $(LOCAL_KERNEL) : $(PRODUCT_OUT)/vendor/firmware/i915/$(t)))
 
@@ -681,6 +685,10 @@ AUTO_IN += $(TARGET_DEVICE_DIR)/extra_files/graphics/auto_hal.in
 # Source: device/intel/mixins/groups/ethernet/dhcp/AndroidBoard.mk
 ##############################################################
 LOAD_MODULES_IN += $(TARGET_DEVICE_DIR)/extra_files/ethernet/load_eth_modules.in
+##############################################################
+# Source: device/intel/mixins/groups/usb-gadget/auto/AndroidBoard.mk
+##############################################################
+AUTO_IN += $(TARGET_DEVICE_DIR)/extra_files/usb-gadget/auto_hal.in
 ##############################################################
 # Source: device/intel/mixins/groups/flashfiles/ini/AndroidBoard.mk
 ##############################################################
@@ -768,7 +776,7 @@ $(LOCAL_BUILT_MODULE): $(LOCAL_SRC)
 ##############################################################
 # Source: device/intel/mixins/groups/gptbuild/true/AndroidBoard.mk
 ##############################################################
-gptimage_size ?= 16G
+gptimage_size ?= 32G
 
 raw_config := none
 raw_factory := none
@@ -813,6 +821,11 @@ endif
 tos_bin = $(INSTALLED_TOS_IMAGE_TARGET)
 endif
 
+ifdef INSTALLED_ODMIMAGE_TARGET
+raw_odm := $(INSTALLED_ODMIMAGE_TARGET).raw
+$(GPTIMAGE_BIN): odmimage $(SIMG2IMG)
+	$(SIMG2IMG) $(INSTALLED_ODMIMAGE_TARGET) $(INSTALLED_ODMIMAGE_TARGET).raw
+endif
 
 
 ifdef INSTALLED_ACPIOIMAGE_TARGET
