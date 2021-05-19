@@ -89,4 +89,3 @@ sensors: mediation
 bugreport: true
 mainline-mod: true
 uio: true
-houdini: true
